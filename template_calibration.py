@@ -103,9 +103,9 @@ if __name__ == "__main__":
         generator = load_generator(model, cache_dir=args.cache_dir, precision=args.precision,
                                    local_files_only=args.local_files_only, device_map=rank,
                                    )
-        for dataset, seed, prediction_method, selection_method, num_shots, data_size, num_templates in product(
+        for dataset, seed, prediction_method, selection_method, num_shots, data_size, num_templates, select_best in product(
                 args.dataset, args.seed, args.prediction_method, args.examples_selection_method,
-                args.num_shots, args.data_size, args.num_templates
+                args.num_shots, args.data_size, args.num_templates, args.select_best
         ):
             print(f"Model:{model}, Dataset:{dataset}")
             labels_loss = True
@@ -135,7 +135,7 @@ if __name__ == "__main__":
                 results, probs = predict(generator, eval_dataset, labels, batch_size=args.eval_batch_size, method=prediction_method,
                                          labels_loss=labels_loss, calibrate_dataset=None)
 
-                if args.select_best:
+                if select_best:
                     if cur_pred is not None:
                         cur_pred += probs
                     else:
@@ -167,7 +167,7 @@ if __name__ == "__main__":
                           'data_size': data_size,
                           'num_templates': num_templates,
                           'selected_templates': len(template_probs),
-                          'select_best': args.select_best
+                          'select_best': select_best
                           }
     
                 if args.use_wandb:
