@@ -100,6 +100,7 @@ if __name__ == "__main__":
     results_df = get_results_pd(args.save_dir)
 
     for model in args.models:
+        precision = torch.float16 if args.precision == 'fp16' else torch.bfloat16 if args.precision == 'bf16' else torch.float32 if args.precision == 'fp32' else torch.int8
         generator = load_generator(model, cache_dir=args.cache_dir, precision=args.precision,
                                    local_files_only=args.local_files_only, device_map=rank,
                                    )
@@ -133,7 +134,7 @@ if __name__ == "__main__":
                                                  method=prediction_method,
                                                  )
                 results, probs = predict(generator, eval_dataset, labels, batch_size=args.eval_batch_size, method=prediction_method,
-                                         labels_loss=labels_loss, calibrate_dataset=None)
+                                         labels_loss=labels_loss, calibrate_dataset=None, precision=precision)
 
                 if select_best:
                     if cur_pred is not None:

@@ -1,10 +1,10 @@
+tqdm
+pandas
+scikit-learn
+wandb
 torch
 transformers
-wandb
-scikit-learn
-accelerate
-pandas
 datasets
-tqdm
 bitsandbytes
+accelerate
 peft

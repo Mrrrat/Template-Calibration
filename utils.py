@@ -54,6 +54,9 @@ def parse_args():
     parser.add_argument("--loss", help='Loss', nargs='+', choices=["pairwise", "mean"])
     parser.add_argument("--data_size", help='Data Size', nargs='+', type=int, default=1000)
     parser.add_argument("--select_best", help='Select Best Templates for Ensemble', type=str2bool, nargs='+', default='False')
+    #peft template calibration
+    parser.add_argument("--batch_size", type=int, default=4,
+                        help="Batch size for training.")
     # inference args
     parser.add_argument("--eval_batch_size", type=int, default=16,
                         help="Batch size for inference.")

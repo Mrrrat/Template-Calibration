@@ -12,7 +12,7 @@ from examples import get_examples
 
 
 @torch.inference_mode()
-def get_loss(generator, batch, labels_loss=False):
+def get_loss(generator, batch, labels_loss=False, precision=torch.float16):
     model = generator.model
     loss_fct = CrossEntropyLoss(reduction='none', ignore_index=-100)
 
@@ -20,7 +20,7 @@ def get_loss(generator, batch, labels_loss=False):
     attention_mask = batch['attention_mask'].to(model.device)
     label_tokens = batch['token_type_ids']
     labels = torch.where(attention_mask == 1, input_ids, -100)
-    with torch.autocast(device_type='cuda', dtype=torch.float16):
+    with torch.autocast(device_type='cuda', dtype=precision):
         outputs = model(input_ids=input_ids, attention_mask=attention_mask)
 
     logits = outputs.logits[..., :-1, :].contiguous().to(model.dtype)
@@ -36,6 +36,37 @@ def get_loss(generator, batch, labels_loss=False):
     losses = losses.detach().cpu()
 
     return losses
+
+
+@torch.enable_grad()
+def get_loss_(model, batch, len_labels, labels_loss=False, precision=torch.float16):
+    loss_fct = CrossEntropyLoss(reduction='none', ignore_index=-100)
+
+    input_ids = batch['input_ids'].to(model.device)
+    attention_mask = batch['attention_mask'].to(model.device)
+    label_tokens = batch['token_type_ids']
+    target = batch['target'][::len_labels]
+    
+    labels = torch.where(attention_mask == 1, input_ids, -100)
+    
+    with torch.autocast(device_type='cuda', dtype=precision):
+        outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+
+    logits = outputs.logits[..., :-1, :].contiguous().to(model.dtype)
+    shift_labels = labels[..., 1:].contiguous().to(logits.device)
+    losses = loss_fct(logits.view(-1, logits.size(-1)), shift_labels.view(-1))
+    losses = losses.view(logits.size(0), logits.size(1))
+    
+    if labels_loss:
+        label_mask = label_tokens[..., 1:].contiguous().to(model.device)
+        losses = losses * label_mask
+        losses = losses.sum(dim=-1) / label_mask.sum(dim=-1)
+    else:
+        losses = losses.mean(dim=-1)
+    
+    losses = softmax(-losses.reshape(-1, len_labels), dim=1)
+    
+    return CrossEntropyLoss()(losses, target)
 
 
 def classify(losses, labels, correction_factor=None, mode="diagonal_W"):
@@ -63,7 +94,7 @@ def classify(losses, labels, correction_factor=None, mode="diagonal_W"):
 
 
 def predict(generator, eval_dataset, labels, batch_size=1, method='direct', labels_loss=False,
-            calibrate_dataset=None, mode='diagonal_W'):
+            calibrate_dataset=None, mode='diagonal_W', preicision=torch.float16):
     collator = DataCollatorForLanguageModeling(generator.tokenizer, mlm=False)
 
     if method == 'calibrate':
@@ -74,7 +105,7 @@ def predict(generator, eval_dataset, labels, batch_size=1, method='direct', labe
         # get probability distribution for context-free inputs
         cf_losses = []
         for batch in tqdm(calibrate_dataloader):
-            cf_losses.extend(get_loss(generator, batch, labels_loss))
+            cf_losses.extend(get_loss(generator, batch, labels_loss, precision))
         cf_losses = torch.tensor(cf_losses, dtype=torch.float32).reshape(-1, len(labels))
         cf_label_probs = softmax(-cf_losses, dim=1)
         # calculate calibration correction term
@@ -86,7 +117,7 @@ def predict(generator, eval_dataset, labels, batch_size=1, method='direct', labe
     eval_dataloader = DataLoader(eval_dataset, shuffle=False, batch_size=batch_size, collate_fn=collator)
     losses = []
     for batch in tqdm(eval_dataloader):
-        losses.extend(get_loss(generator, batch, labels_loss))
+        losses.extend(get_loss(generator, batch, labels_loss, precision))
 
     losses = torch.tensor(losses, dtype=torch.float32).reshape(-1, len(labels))
     results, probs = classify(losses, labels, correction_factor, mode)
