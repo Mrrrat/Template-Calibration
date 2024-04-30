@@ -10,11 +10,13 @@ python peft_template_calibration.py \
 --prediction_method direct \
 --num_templates 3 \
 --steps 10 \
---lr 3e-4 \
+--lr 3e-1 \
 --sigma 0 \
 --loss mean \
---data_size 50 \
---batch_size 2 \
+--data_size 100 \
+--batch_size 8 \
 --eval_batch_size 32 \
 --select_best True \
+--epochs 3 \
+--hf_token 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 \
 --save_dir bebra \

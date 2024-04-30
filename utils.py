@@ -56,12 +56,14 @@ def parse_args():
     parser.add_argument("--select_best", help='Select Best Templates for Ensemble', type=str2bool, nargs='+', default='False')
     #peft template calibration
     parser.add_argument("--batch_size", type=int, default=4,
-                        help="Batch size for training.")
+                        help="Batch size for training")
+    parser.add_argument("--epochs", type=int, default=3,
+                        help="Epochs for training")
     # inference args
     parser.add_argument("--eval_batch_size", type=int, default=16,
                         help="Batch size for inference.")
     parser.add_argument("--precision", choices=['fp16', 'fp32', 'bf16', 'int8'], default='fp16',
-                        help='floating point precision for inference model.')
+                        help='floating point precision for inference model')
     # hf args
     parser.add_argument("--cache_dir", help="Path to huggingface cache")
     parser.add_argument("--local_files_only", action='store_true',
@@ -78,6 +80,7 @@ def parse_args():
     parser.add_argument("--use_wandb", default=True, action=argparse.BooleanOptionalAction, 
                         help="Write --no-use_wandb to disable WandB.")
     parser.add_argument("--wandb_entity", default=None)
+    parser.add_argument("--hf_token", default=None)
     args = parser.parse_args()
     return args
 

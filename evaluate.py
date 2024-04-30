@@ -45,7 +45,7 @@ def get_loss_(model, batch, len_labels, labels_loss=False, precision=torch.float
     input_ids = batch['input_ids'].to(model.device)
     attention_mask = batch['attention_mask'].to(model.device)
     label_tokens = batch['token_type_ids']
-    target = batch['target'][::len_labels]
+    target = batch['target'][::len_labels].to(model.device)
     
     labels = torch.where(attention_mask == 1, input_ids, -100)
     
@@ -94,7 +94,7 @@ def classify(losses, labels, correction_factor=None, mode="diagonal_W"):
 
 
 def predict(generator, eval_dataset, labels, batch_size=1, method='direct', labels_loss=False,
-            calibrate_dataset=None, mode='diagonal_W', preicision=torch.float16):
+            calibrate_dataset=None, mode='diagonal_W', precision=torch.float16):
     collator = DataCollatorForLanguageModeling(generator.tokenizer, mlm=False)
 
     if method == 'calibrate':
