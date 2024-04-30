@@ -232,9 +232,9 @@ if __name__ == "__main__":
                     
     
                 calibrator.eval()
-                default_std = torch.std(test_, dim=1).mean()
+                default_std = torch.std(test_, dim=0).mean()
                 pred = calibrator(test_)
-                trained_std = torch.std(pred, dim=1).mean()
+                trained_std = torch.std(pred, dim=0).mean()
                 _, default_kl, _ = calc_loss_pairwise(test_, test_, 0)
                 _, trained_kl, _ = calc_loss_pairwise(pred, pred, 0)            
                 wandb.log({'Default Std': default_std,
