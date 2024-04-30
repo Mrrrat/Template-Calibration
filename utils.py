@@ -66,6 +66,7 @@ def parse_args():
                         help="Batch size for inference.")
     parser.add_argument("--precision", choices=['fp16', 'fp32', 'bf16', 'int8'], default='fp16',
                         help='floating point precision for inference model')
+    parser.add_argument("--gradient_accumulation_steps", help='Gradient Accumulation Steps', type=int, default=1)
     # hf args
     parser.add_argument("--cache_dir", help="Path to huggingface cache")
     parser.add_argument("--local_files_only", action='store_true',
