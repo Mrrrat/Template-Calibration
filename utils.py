@@ -47,19 +47,21 @@ def parse_args():
                         )
     parser.add_argument("--labels_loss", action='store_true',
                         help="Whether to calculate loss over the whole sequence or only on the label tokens.")
+    #calibration
+    parser.add_argument("--num_templates", type=int, help='number of randomly generated templates.', nargs='+', default=10)
+    parser.add_argument("--select_best", help='Select Best Templates for Ensemble', type=str2bool, nargs='+', default='False')
     # template calibration
     parser.add_argument("--steps", help='Number of steps', type=int, default=1000)
-    parser.add_argument("--lr", help='Learning rate', type=float, default=3e-4)
     parser.add_argument("--sigma", help='Sigma', nargs='+', type=float, default=1)
     parser.add_argument("--loss", help='Loss', nargs='+', choices=["pairwise", "mean"])
-    parser.add_argument("--data_size", help='Data Size', nargs='+', type=int, default=1000)
-    parser.add_argument("--select_best", help='Select Best Templates for Ensemble', type=str2bool, nargs='+', default='False')
     #peft template calibration
     parser.add_argument("--batch_size", type=int, default=4,
                         help="Batch size for training")
     parser.add_argument("--epochs", type=int, default=3,
                         help="Epochs for training")
     # inference args
+    parser.add_argument("--lr", help='Learning rate', type=float, default=3e-4)
+    parser.add_argument("--data_size", help='Data Size', nargs='+', type=int, default=1000)
     parser.add_argument("--eval_batch_size", type=int, default=16,
                         help="Batch size for inference.")
     parser.add_argument("--precision", choices=['fp16', 'fp32', 'bf16', 'int8'], default='fp16',
@@ -69,7 +71,7 @@ def parse_args():
     parser.add_argument("--local_files_only", action='store_true',
                         help="turn this on if you want to make sure that you do not download the same weights from HF "
                              "hub again to another path occasionally.")
-    parser.add_argument("--num_templates", type=int, help='number of randomly generated templates.', nargs='+', default=10)
+    
     parser.add_argument("--templates_path",
                         help="Path to a *.json file containing pre-determined set of templates.")
     parser.add_argument("--template_seed", type=int, default=59,
