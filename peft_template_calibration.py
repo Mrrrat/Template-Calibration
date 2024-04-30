@@ -159,7 +159,8 @@ if __name__ == "__main__":
             train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.batch_size * len(labels), collate_fn=collator, drop_last=True)
             test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=args.batch_size * len(labels), collate_fn=collator, drop_last=True)
 
-            optimizer = bnb.optim.PagedAdamW8bit(generator.model.parameters(), lr=args.lr, betas=(0.9, 0.995))
+            #optimizer = bnb.optim.PagedAdamW8bit(generator.model.parameters(), lr=args.lr, betas=(0.9, 0.995))
+            optimizer = bnb.optim.PagedAdamW(generator.model.parameters(), lr=args.lr, betas = (0.9, 0.999))
             scaler = torch.cuda.amp.GradScaler()
             scheduler = get_linear_schedule_with_warmup(optimizer,
                                                         num_warmup_steps=200,
@@ -172,21 +173,25 @@ if __name__ == "__main__":
                 generator.model.train()
                 for step, batch in tqdm(enumerate(train_dataloader)):
                     loss = get_loss_(generator.model, batch, len(labels), labels_loss=False, precision=torch.float16)
-                    wandb.log({'Loss': loss})
-                    
+
                     if precision == torch.float16:
                         scaler.scale(loss).backward()
-                        scaler.unscale_(optimizer)
-                        scaler.step(optimizer)
-                        scaler.update()
                     else:
                         loss.backward()
-                        optimizer.step()
-
-                    if scheduler is not None:
-                        scheduler.step()
+                    
+                    if step % args.gradient_accumulation_steps == 0:
+                        if precision == torch.float16:
+                            scaler.unscale_(optimizer)
+                            scaler.step(optimizer)
+                            scaler.update()
+                        else:
+                            optimizer.step()
+    
+                        if scheduler is not None:
+                            scheduler.step()
                             
-                    optimizer.zero_grad()
+                        optimizer.zero_grad()
+                        wandb.log({'Loss': loss})
 
             generator.model.eval()
 
