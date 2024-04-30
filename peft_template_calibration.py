@@ -33,13 +33,13 @@ if __name__ == "__main__":
     for model_name in args.models:
         precision = torch.float16 if args.precision == 'fp16' else torch.bfloat16 if args.precision == 'bf16' else torch.float32 if args.precision == 'fp32' else torch.int8
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="right", token=args.hf_token)
-        bnb_config = BitsAndBytesConfig(
-           load_in_4bit=True,
-        #    bnb_4bit_quant_type="nf4",
-        #    bnb_4bit_use_double_quant=True,
-           bnb_4bit_compute_dtype=precision
-        )
-        model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", quantization_config=bnb_config, token=args.hf_token)
+        # bnb_config = BitsAndBytesConfig(
+        #    load_in_4bit=True,
+        # #    bnb_4bit_quant_type="nf4",
+        # #    bnb_4bit_use_double_quant=True,
+        #    bnb_4bit_compute_dtype=precision
+        # )
+        model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", torch_dtype=precision, token=args.hf_token) #quantization_config=bnb_config
         
         if 'llama' in model_name and 'llama-3' not in model_name:
             tokenizer.add_special_tokens({'pad_token': '[PAD]'})
