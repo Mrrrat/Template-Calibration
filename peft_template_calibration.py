@@ -165,7 +165,7 @@ if __name__ == "__main__":
                             
                     optimizer.zero_grad()
 
-                # generator.model.test()
+                generator.model.test()
                 # for step, batch in tqdm(enumerate(test_dataloader)):
                 #     loss = get_loss_(generator.model, batch, len(labels), labels_loss=False, precision=torch.float16)
 
