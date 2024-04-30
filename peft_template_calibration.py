@@ -41,13 +41,9 @@ if __name__ == "__main__":
         # )
         model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", torch_dtype=precision, token=args.hf_token) #quantization_config=bnb_config
         
-        if 'llama' in model_name and 'llama-3' not in model_name:
-            tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-            tokenizer.pad_token_id = tokenizer.unk_token_id
-            model.config.pad_token_id = tokenizer.unk_token_id
-        else:
-            tokenizer.pad_token = tokenizer.eos_token
-            model.config.pad_token_id = model.config.eos_token_id
+        tokenizer.pad_token = tokenizer.eos_token
+        model.config.pad_token_id = model.config.eos_token_id
+        tokenizer.padding_side = "right"
 
         model.gradient_checkpointing_enable()
         model.enable_input_require_grads()
@@ -165,7 +161,7 @@ if __name__ == "__main__":
                             
                     optimizer.zero_grad()
 
-                generator.model.test()
+                generator.model.eval()
                 # for step, batch in tqdm(enumerate(test_dataloader)):
                 #     loss = get_loss_(generator.model, batch, len(labels), labels_loss=False, precision=torch.float16)
 
