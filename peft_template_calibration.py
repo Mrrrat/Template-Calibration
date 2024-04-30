@@ -60,6 +60,21 @@ if __name__ == "__main__":
                 args.num_shots, args.data_size, args.num_templates, args.select_best
         ):
             print(f"Model:{model_name}, Dataset:{dataset}")
+            config = {'dataset': dataset, 
+                      'model': model_name, 
+                      'seed': seed,
+                      'example_selection_method': selection_method, 
+                      'n_shots': num_shots,
+                      'prediction_method': prediction_method, 
+                      'eval_batch_size': args.eval_batch_size,
+                      'batch_size': args.batch_size,
+                      'precision': args.precision,
+                      'template_seed': args.template_seed,
+                      'data_size': data_size,
+                      'num_templates': num_templates,
+                      'select_best': select_best,
+                      'epochs': args.epochs,
+                      }
             labels_loss = True
 
             templates = get_templates(dataset, num_shots, num_templates, args.templates_path, args.template_seed)
@@ -115,10 +130,18 @@ if __name__ == "__main__":
 
                 test_template_probs.append(test_probs)
 
-            print(f"Default Std: {torch.std(torch.stack(test_template_probs), dim=0).mean()}")
+            config['Selected Templates'] = len(train_template_probs),
+            
+            train_template_probs = torch.stack(train_template_probs)
+            test_template_probs = torch.stack(test_template_probs)
 
-            train_ensemble = torch.stack(train_template_probs).mean(dim=0)
-            test_ensemble = torch.stack(test_template_probs).mean(dim=0)
+            config['Default Std'] = torch.std(test_template_probs, dim=0).mean()
+            print(f"Default Std: {config['Default Std']}")
+            config['Default Mean Accuracy'] = np.array(labels)[test_template_probs.argmax(2)] == np.array(test['target'])).mean(1).mean()
+            print(f"Default Mean Accuracy: {config['Default Mean Accuracy']}")
+
+            train_ensemble = train_template_probs.mean(dim=0)
+            test_ensemble = test_template_probs.mean(dim=0)
 
             train_dataset = EnsembleDataset([x.strip() for x in train['input']],
                                generator.tokenizer, labels, templates,
@@ -141,11 +164,15 @@ if __name__ == "__main__":
             scheduler = get_linear_schedule_with_warmup(optimizer,
                                                         num_warmup_steps=200,
                                                         num_training_steps=args.epochs * len(train_dataloader))
+
+            if args.use_wandb:
+                wandb.init(name=f"{dataset}_{model_name}_{num_templates}_{seed}_{data_size}",entity=args.wandb_entity, reinit=True, config=config)
             
             for epoch in tqdm(range(args.epochs)):
                 generator.model.train()
                 for step, batch in tqdm(enumerate(train_dataloader)):
                     loss = get_loss_(generator.model, batch, len(labels), labels_loss=False, precision=torch.float16)
+                    wandb.log({'Loss': loss})
                     
                     if precision == torch.float16:
                         scaler.scale(loss).backward()
@@ -161,22 +188,29 @@ if __name__ == "__main__":
                             
                     optimizer.zero_grad()
 
-                generator.model.eval()
-                # for step, batch in tqdm(enumerate(test_dataloader)):
-                #     loss = get_loss_(generator.model, batch, len(labels), labels_loss=False, precision=torch.float16)
+            generator.model.eval()
 
-                test_template_probs = []
-                for template in templates:
-                    test_dataset = TensorDataset([x.strip() for x in test['input']],
-                                                     generator.tokenizer, labels, template,
-                                                     examples=examples,
-                                                     method=prediction_method,
-                                                     )
-                    _, test_probs = predict(generator, test_dataset, labels, batch_size=args.eval_batch_size, method=prediction_method,
-                                             labels_loss=labels_loss, calibrate_dataset=None, precision=precision)
-    
-                    test_template_probs.append(test_probs)
-    
-                print(f"Std after {epoch} epoch: {torch.std(torch.stack(test_template_probs), dim=0).mean()}")
+            test_template_probs = []
+            for template in templates:
+                test_dataset = TensorDataset([x.strip() for x in test['input']],
+                                                 generator.tokenizer, labels, template,
+                                                 examples=examples,
+                                                 method=prediction_method,
+                                                 )
+                _, test_probs = predict(generator, test_dataset, labels, batch_size=args.eval_batch_size, method=prediction_method,
+                                         labels_loss=labels_loss, calibrate_dataset=None, precision=precision)
+
+                test_template_probs.append(test_probs)
+
+                        confgig['selected_templates'] = len(train_template_probs),
+            
+            test_template_probs = torch.stack(test_template_probs)
+
+            config['Trained Std'] = torch.std(test_template_probs, dim=0).mean()
+            print(f"Trained Std: {config['Trained Std']}")
+            config['Trained Mean Accuracy'] = np.array(labels)[test_template_probs.argmax(2)] == np.array(test['target'])).mean(1).mean()
+            print(f"Trained Mean Accuracy: {config['Trained Mean Accuracy']}")
+            
+            results_df = save_results_pd(results_df, config, save_dir=args.save_dir)
 
             
