@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
             config['Default Std'] = torch.std(test_template_probs, dim=0).mean()
             print(f"Default Std: {config['Default Std']}")
-            config['Default Mean Accuracy'] = np.array(labels)[test_template_probs.argmax(2)] == np.array(test['target'])).mean(1).mean()
+            config['Default Mean Accuracy'] = (np.array(labels)[test_template_probs.argmax(2)] == np.array(test['target'])).mean(1).mean()
             print(f"Default Mean Accuracy: {config['Default Mean Accuracy']}")
 
             train_ensemble = train_template_probs.mean(dim=0)
@@ -213,7 +213,7 @@ if __name__ == "__main__":
 
             config['Trained Std'] = torch.std(test_template_probs, dim=0).mean()
             print(f"Trained Std: {config['Trained Std']}")
-            config['Trained Mean Accuracy'] = np.array(labels)[test_template_probs.argmax(2)] == np.array(test['target'])).mean(1).mean()
+            config['Trained Mean Accuracy'] = (np.array(labels)[test_template_probs.argmax(2)] == np.array(test['target'])).mean(1).mean()
             print(f"Trained Mean Accuracy: {config['Trained Mean Accuracy']}")
             
             results_df = save_results_pd(results_df, config, save_dir=args.save_dir)
