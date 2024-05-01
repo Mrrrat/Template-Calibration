@@ -55,9 +55,9 @@ if __name__ == "__main__":
         
         generator = Generator(model=model, tokenizer=tokenizer)
 
-        for dataset, seed, prediction_method, selection_method, num_shots, data_size, num_templates, select_best in product(
+        for dataset, seed, prediction_method, selection_method, num_shots, data_size, num_templates, select_best, max_train_templates in product(
                 args.dataset, args.seed, args.prediction_method, args.examples_selection_method,
-                args.num_shots, args.data_size, args.num_templates, args.select_best
+                args.num_shots, args.data_size, args.num_templates, args.select_best, args.max_train_templates
         ):
             print(f"Model:{model_name}, Dataset:{dataset}")
             config = {'dataset': dataset, 
@@ -74,6 +74,7 @@ if __name__ == "__main__":
                       'num_templates': num_templates,
                       'select_best': select_best,
                       'epochs': args.epochs,
+                      'max_train_templates': max_train_templates
                       }
             labels_loss = True
 
@@ -111,22 +112,22 @@ if __name__ == "__main__":
                                                  )
                 _, train_probs = predict(generator, train_dataset, labels, batch_size=args.eval_batch_size, method=prediction_method,
                                          labels_loss=labels_loss, calibrate_dataset=None, precision=precision)
-                
 
-                if select_best:
-                    if cur_pred is not None:
-                        cur_pred += train_probs
+                if len(train_template_probs) < max_train_templates:
+                    if select_best:
+                        if cur_pred is not None:
+                            cur_pred += train_probs
+                        else:
+                            cur_pred = torch.clone(train_probs)
+                            
+                        acc = (np.array(labels)[cur_pred.argmax(1)] == np.array(train['target'])).mean()
+                        if acc > cur_acc:
+                            train_template_probs.append(train_probs)
+                            cur_acc = acc
+                        else:
+                            cur_pred -= train_probs
                     else:
-                        cur_pred = torch.clone(train_probs)
-                        
-                    acc = (np.array(labels)[cur_pred.argmax(1)] == np.array(train['target'])).mean()
-                    if acc > cur_acc:
                         train_template_probs.append(train_probs)
-                        cur_acc = acc
-                    else:
-                        cur_pred -= train_probs
-                else:
-                    train_template_probs.append(train_probs)
 
                 test_template_probs.append(test_probs)
 
