@@ -48,8 +48,8 @@ if __name__ == "__main__":
         model.gradient_checkpointing_enable()
         model.enable_input_require_grads()
         model = prepare_model_for_kbit_training(model)
-        
-        peft_config = LoraConfig(inference_mode=False, r=8, lora_alpha=32, target_modules=["q_proj", "v_proj"], lora_dropout=0.1, peft_type=TaskType.CAUSAL_LM)
+        target_modules = ["q_proj", "o_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"] #["q_proj", "v_proj"]
+        peft_config = LoraConfig(inference_mode=False, r=8, lora_alpha=32, target_modules=target_modules, lora_dropout=0.1, peft_type=TaskType.CAUSAL_LM)
 
         model = get_peft_model(model, peft_config)
         
