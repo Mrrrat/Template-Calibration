@@ -49,6 +49,7 @@ def parse_args():
                         help="Whether to calculate loss over the whole sequence or only on the label tokens.")
     #calibration
     parser.add_argument("--num_templates", type=int, help='number of randomly generated templates.', nargs='+', default=10)
+    parser.add_argument("--max_train_templates", type=int, help='number of max number generated templates for ensemble.', nargs='+', default=10) 
     parser.add_argument("--select_best", help='Select Best Templates for Ensemble', type=str2bool, nargs='+', default='False')
     # template calibration
     parser.add_argument("--steps", help='Number of steps', type=int, default=1000)
