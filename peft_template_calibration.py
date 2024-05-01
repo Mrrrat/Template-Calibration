@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
                 test_template_probs.append(test_probs)
 
-            config['Selected Templates'] = len(train_template_probs),
+            config['Selected Templates'] = len(train_template_probs)
             
             train_template_probs = torch.stack(train_template_probs)
             test_template_probs = torch.stack(test_template_probs)
@@ -206,8 +206,6 @@ if __name__ == "__main__":
                                          labels_loss=labels_loss, calibrate_dataset=None, precision=precision)
 
                 test_template_probs.append(test_probs)
-
-                        confgig['selected_templates'] = len(train_template_probs),
             
             test_template_probs = torch.stack(test_template_probs)
 
