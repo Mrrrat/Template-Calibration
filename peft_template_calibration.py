@@ -51,7 +51,7 @@ if __name__ == "__main__":
         model.enable_input_require_grads()
         model = prepare_model_for_kbit_training(model)
         
-        target_moules = ["q_proj", "v_proj"]
+        target_modules = ["q_proj", "v_proj"]
         if args.all_projections:
             target_modules = ["q_proj", "o_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"]
             
