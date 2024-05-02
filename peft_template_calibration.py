@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
         model.gradient_checkpointing_enable()
         model.enable_input_require_grads()
-        #model = prepare_model_for_kbit_training(model)
+        model = prepare_model_for_kbit_training(model)
         
         target_moules = ["q_proj", "v_proj"]
         if args.all_projections:
