@@ -61,6 +61,8 @@ def parse_args():
                         help="Batch size for training")
     parser.add_argument("--epochs", type=int, default=3,
                         help="Epochs for training")
+    parser.add_argument("--all_projections", action='store_true',
+                        help="Whether to lora over all porjections or not.")
     # inference args
     parser.add_argument("--lr", help='Learning rate', type=float, default=3e-4)
     parser.add_argument("--data_size", help='Data Size', nargs='+', type=int, default=1000)
