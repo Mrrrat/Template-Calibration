@@ -55,9 +55,9 @@ if __name__ == "__main__":
         
         generator = Generator(model=model, tokenizer=tokenizer)
 
-        for dataset, seed, prediction_method, selection_method, num_shots, data_size, num_templates, select_best, max_train_templates in product(
+        for dataset, seed, prediction_method, selection_method, num_shots, data_size, num_templates, select_best, max_ensemble_templates, n_train_templates in product(
                 args.dataset, args.seed, args.prediction_method, args.examples_selection_method,
-                args.num_shots, args.data_size, args.num_templates, args.select_best, args.max_train_templates
+                args.num_shots, args.data_size, args.num_templates, args.select_best, args.max_ensemble_templates, args.n_train_templates
         ):
             print(f"Model:{model_name}, Dataset:{dataset}")
             config = {'dataset': dataset, 
@@ -74,7 +74,8 @@ if __name__ == "__main__":
                       'num_templates': num_templates,
                       'select_best': select_best,
                       'epochs': args.epochs,
-                      'max_train_templates': max_train_templates
+                      'max_ensemble_templates': max_ensemble_templates,
+                      'n_train_templates': n_train_templates
                       }
             labels_loss = True
 
@@ -115,7 +116,7 @@ if __name__ == "__main__":
                 _, train_probs = predict(generator, train_dataset, labels, batch_size=args.eval_batch_size, method=prediction_method,
                                          labels_loss=labels_loss, calibrate_dataset=None, precision=precision)
 
-                if len(train_template_probs) < max_train_templates:
+                if len(train_template_probs) < max_ensemble_templates:
                     if select_best:
                         if cur_pred is not None:
                             cur_pred += train_probs
@@ -148,8 +149,10 @@ if __name__ == "__main__":
             train_ensemble = train_template_probs.mean(dim=0)
             test_ensemble = test_template_probs.mean(dim=0)
 
+            train_templates = templates[:n_train_templates]
+
             train_dataset = EnsembleDataset([x.strip() for x in train['input']],
-                               generator.tokenizer, labels, templates,
+                               generator.tokenizer, labels, train_templates,
                                train_ensemble, examples=examples,
                                method=prediction_method)
             test_dataset = EnsembleDataset([x.strip() for x in test['input']],
@@ -158,7 +161,7 @@ if __name__ == "__main__":
                                method=prediction_method)
             
             collator = DataCollatorForLanguageModeling(generator.tokenizer, mlm=False)
-            train_sampler = ReproducibleRandomSampler(len(train['input']) * len(templates), len(labels), seed=seed)
+            train_sampler = ReproducibleRandomSampler(len(train['input']) * len(train_templates), len(labels), seed=seed)
             test_sampler = ReproducibleRandomSampler(len(test['input']) * len(templates), len(labels), seed=seed)
 
             train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.batch_size * len(labels), collate_fn=collator, drop_last=True)
