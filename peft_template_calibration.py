@@ -81,7 +81,9 @@ if __name__ == "__main__":
             templates = get_templates(dataset, num_shots, num_templates, args.templates_path, args.template_seed)
 
             train, test, labels_mp = load_split_dataset(dataset, cache_dir=None)
+            print(f'Train size: {len(train)}, Test size: {len(test)}')
             train, test = train[:data_size], test[:1000]
+            print(f'Train size: {len(train)}, Test size: {len(test)}')
             labels = list(labels_mp.values())
 
             selected_examples = get_examples(dataset, train, selection_method=selection_method, seed=seed, num_shots=num_shots,
