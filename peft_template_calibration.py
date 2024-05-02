@@ -141,7 +141,7 @@ if __name__ == "__main__":
             config['Default Mean Accuracy'] = (np.array(labels)[test_template_probs.argmax(2)] == np.array(test['target'])).mean(1).mean()
             print(f"Default Mean Accuracy: {config['Default Mean Accuracy']}")
             config['Default Ensemble Accuracy'] = (np.array(labels)[train_template_probs.argmax(2)] == np.array(train['target'])).mean(1).mean()
-            print(f"DDefault Ensemble Accuracy: {config['Default Ensemble Accuracy']}")
+            print(f"Default Ensemble Accuracy: {config['Default Ensemble Accuracy']}")
 
             train_ensemble = train_template_probs.mean(dim=0)
             test_ensemble = test_template_probs.mean(dim=0)
@@ -197,22 +197,22 @@ if __name__ == "__main__":
                         wandb.log({'Loss': loss})
 
                 generator.model.eval()
-
-                test_template_probs = []
-                for template in templates:
-                    test_dataset = TensorDataset([x.strip() for x in test['input']],
-                                                     generator.tokenizer, labels, template,
-                                                     examples=examples,
-                                                     method=prediction_method,
-                                                     )
-                    _, test_probs = predict(generator, test_dataset, labels, batch_size=args.eval_batch_size, method=prediction_method,
-                                             labels_loss=labels_loss, calibrate_dataset=None, precision=precision)
-    
-                    test_template_probs.append(test_probs)
-                
-                test_template_probs = torch.stack(test_template_probs)
-                print(f"Trained Std after {epoch} epoch: {torch.std(test_template_probs, dim=0).mean()}")
-                print(f"Trained Mean Accuracy after {epoch} epoch: {(np.array(labels)[test_template_probs.argmax(2)] == np.array(test['target'])).mean(1).mean()}")
+                if epoch < args.epochs - 1:
+                    test_template_probs = []
+                    for template in templates:
+                        test_dataset = TensorDataset([x.strip() for x in test['input']],
+                                                         generator.tokenizer, labels, template,
+                                                         examples=examples,
+                                                         method=prediction_method,
+                                                         )
+                        _, test_probs = predict(generator, test_dataset, labels, batch_size=args.eval_batch_size, method=prediction_method,
+                                                 labels_loss=labels_loss, calibrate_dataset=None, precision=precision)
+        
+                        test_template_probs.append(test_probs)
+                    
+                    test_template_probs = torch.stack(test_template_probs)
+                    print(f"Trained Std after {epoch} epoch: {torch.std(test_template_probs, dim=0).mean()}")
+                    print(f"Trained Mean Accuracy after {epoch} epoch: {(np.array(labels)[test_template_probs.argmax(2)] == np.array(test['target'])).mean(1).mean()}")
 
             generator.model.eval()
 
