@@ -41,7 +41,8 @@ if __name__ == "__main__":
         # #    bnb_4bit_use_double_quant=True,
         #    bnb_4bit_compute_dtype=precision
         # )
-        model = AutoModelForCausalLM.from_pretrained(model_name, device_map=int(os.environ['RANK']), torch_dtype=precision, token=args.hf_token) #quantization_config=bnb_config
+        rank = int(os.environ['RANK']) if 'RANK' in os.environ else -1
+        model = AutoModelForCausalLM.from_pretrained(model_name, device_map=rank, torch_dtype=precision, token=args.hf_token) #quantization_config=bnb_config
         
         tokenizer.pad_token = tokenizer.eos_token
         model.config.pad_token_id = model.config.eos_token_id
