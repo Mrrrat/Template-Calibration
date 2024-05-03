@@ -28,11 +28,14 @@ except ImportError:
 if __name__ == "__main__":
     args = parse_args()
     results_df = get_results_pd(args.save_dir)
+    #rank = int(os.environ['RANK']) if 'RANK' in os.environ else 0
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     for model_name, dataset, seed, prediction_method, selection_method, num_shots, data_size, num_templates, select_best, max_ensemble_templates, n_train_templates in product(args.models, 
             args.dataset, args.seed, args.prediction_method, args.examples_selection_method,
             args.num_shots, args.data_size, args.num_templates, args.select_best, args.max_ensemble_templates, args.n_train_templates
     ):
         print(f"Model:{model_name}, Dataset:{dataset}")
+        torch.cuda.empty_cache()
         precision = torch.float16 if args.precision == 'fp16' else torch.bfloat16 if args.precision == 'bf16' else torch.float32 if args.precision == 'fp32' else torch.int8
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="right", token=args.hf_token)
         # bnb_config = BitsAndBytesConfig(
@@ -41,8 +44,9 @@ if __name__ == "__main__":
         # #    bnb_4bit_use_double_quant=True,
         #    bnb_4bit_compute_dtype=precision
         # )
-        rank = int(os.environ['RANK']) if 'RANK' in os.environ else 0
-        model = AutoModelForCausalLM.from_pretrained(model_name, device_map=rank, torch_dtype=precision, token=args.hf_token) #quantization_config=bnb_config
+        
+        model = AutoModelForCausalLM.from_pretrained(model_name, device_map='auto', torch_dtype=precision, token=args.hf_token) #quantization_config=bnb_config
+        model.to(device)
         
         tokenizer.pad_token = tokenizer.eos_token
         model.config.pad_token_id = model.config.eos_token_id
