@@ -10,7 +10,7 @@ from torch.utils.data import Dataset, Sampler
 import numpy as np
 
 
-MAX_INPUT_LENGTH = 1024
+MAX_INPUT_LENGTH = 512
 VAL_SPLIT_SEED = 59
 VAL_TEST_SIZE = 3000
 INPUT_VERBALIZERS = ['input: {}', 'text: {}', 'sentence: {}', '{}']
