@@ -299,7 +299,7 @@ class TRECDataset:
 DATASET_TO_DATACLASS = {"sst2": SST2Dataset, "dbpedia": DBPediaDataset, "agnews": AGNewsDataset, "trec": TRECDataset}
 
 
-def load_split_dataset(dataset_name, seed=VAL_SPLIT_SEED, cache_dir='~/.cache/huggingface/datasets'):
+def load_split_dataset(dataset_name, seed=VAL_SPLIT_SEED, cache_dir='~/.cache/huggingface/hub'):
     dataset_dataclass = DATASET_TO_DATACLASS[dataset_name]
     dataset = load_dataset(dataset_dataclass.dataset_name, cache_dir=cache_dir).shuffle(seed=seed)
     if dataset_name in ['agnews', 'dbpedia']:
