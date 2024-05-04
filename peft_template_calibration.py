@@ -179,7 +179,7 @@ if __name__ == "__main__":
         scaler = torch.cuda.amp.GradScaler()
         scheduler = get_linear_schedule_with_warmup(optimizer,
                                                     num_warmup_steps=200,
-                                                    num_training_steps=args.epochs * len(train_dataloader))
+                                                    num_training_steps=args.steps) #args.epochs * len(train_dataloader)
 
         if args.use_wandb:
             wandb.init(name=f"{dataset}_{model_name}_{num_templates}_{seed}_{data_size}",entity=args.wandb_entity, reinit=True, config=config)
