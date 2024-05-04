@@ -82,7 +82,7 @@ if __name__ == "__main__":
                   'epochs': args.epochs,
                   'max_ensemble_templates': max_ensemble_templates,
                   'n_train_templates': n_train_templates,
-                  'steps': args.max_steps,
+                  'steps': args.steps,
                   }
         labels_loss = True
 
@@ -209,10 +209,10 @@ if __name__ == "__main__":
                     optimizer.zero_grad()
                     wandb.log({'Loss': loss})
                     total_steps += 1
-                    if total_steps >= args.max_steps:
+                    if total_steps >= args.steps:
                         break
 
-            if total_steps >= args.max_steps:
+            if total_steps >= args.steps:
                 break
 
             generator.model.eval()
