@@ -81,7 +81,8 @@ if __name__ == "__main__":
                   'select_best': select_best,
                   'epochs': args.epochs,
                   'max_ensemble_templates': max_ensemble_templates,
-                  'n_train_templates': n_train_templates
+                  'n_train_templates': n_train_templates,
+                  'steps': args.max_steps,
                   }
         labels_loss = True
 
@@ -182,7 +183,8 @@ if __name__ == "__main__":
 
         if args.use_wandb:
             wandb.init(name=f"{dataset}_{model_name}_{num_templates}_{seed}_{data_size}",entity=args.wandb_entity, reinit=True, config=config)
-        
+
+        total_steps = 0
         for epoch in tqdm(range(args.epochs)):
             generator.model.train()
             for step, batch in tqdm(enumerate(train_dataloader)):
@@ -206,6 +208,12 @@ if __name__ == "__main__":
                         
                     optimizer.zero_grad()
                     wandb.log({'Loss': loss})
+                    total_steps += 1
+                    if total_steps >= args.max_steps:
+                        break
+
+            if total_steps >= args.max_steps:
+                break
 
             generator.model.eval()
             if epoch < args.epochs - 1:
