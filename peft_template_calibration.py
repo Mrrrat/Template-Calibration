@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
         templates = get_templates(dataset, num_shots, num_templates, args.templates_path, args.template_seed)
 
-        train, test, labels_mp = load_split_dataset(dataset, cache_dir=None)
+        train, test, labels_mp = load_split_dataset(dataset, cache_dir='~/.cache/huggingface/hub')
         print(f'Train size: {len(train)}, Test size: {len(test)}')
         train, test = train[:data_size], test[:1000]
         print(f'Train size: {len(train)}, Test size: {len(test)}')
