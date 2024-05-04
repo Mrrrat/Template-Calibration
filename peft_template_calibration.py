@@ -75,7 +75,6 @@ if __name__ == "__main__":
                   'eval_batch_size': args.eval_batch_size,
                   'batch_size': args.batch_size,
                   'precision': args.precision,
-                  'template_seed': args.template_seed,
                   'data_size': data_size,
                   'num_templates': num_templates,
                   'select_best': select_best,
@@ -86,7 +85,7 @@ if __name__ == "__main__":
                   }
         labels_loss = True
 
-        templates = get_templates(dataset, num_shots, num_templates, args.templates_path, args.template_seed)
+        templates = get_templates(dataset, num_shots, num_templates, args.templates_path, seed)
 
         train, test, labels_mp = load_split_dataset(dataset, cache_dir='~/.cache/huggingface/hub')
         print(f'Train size: {len(train)}, Test size: {len(test)}')
