@@ -46,11 +46,11 @@ if __name__ == "__main__":
                 bnb_4bit_use_double_quant=True,
                 bnb_4bit_compute_dtype=torch.bfloat16
             )
-            model = AutoModelForCausalLM.from_pretrained(model_name, device_map='auto', quantization_config=bnb_config, token=args.hf_token) 
+            model = AutoModelForCausalLM.from_pretrained(model_name, device_map={"":0}, quantization_config=bnb_config, token=args.hf_token) 
         else: 
-            model = AutoModelForCausalLM.from_pretrained(model_name, device_map='auto', torch_dtype=precision, token=args.hf_token)
+            model = AutoModelForCausalLM.from_pretrained(model_name, device_map={"":0}, torch_dtype=precision, token=args.hf_token)
             
-        model.to(device)
+        #model.to(device)
         
         tokenizer.pad_token = tokenizer.eos_token
         model.config.pad_token_id = model.config.eos_token_id
