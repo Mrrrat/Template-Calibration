@@ -222,7 +222,7 @@ if __name__ == "__main__":
             if total_steps >= args.steps:
                 break
 
-            generator.model.eval()
+            # generator.model.eval()
             # if epoch < args.epochs - 1:
             #     test_template_probs = []
             #     for template in templates:
