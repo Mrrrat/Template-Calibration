@@ -38,14 +38,18 @@ if __name__ == "__main__":
         torch.cuda.empty_cache()
         precision = torch.float16 if args.precision == 'fp16' else torch.bfloat16 if args.precision == 'bf16' else torch.float32 if args.precision == 'fp32' else torch.int8
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="right", token=args.hf_token)
-        # bnb_config = BitsAndBytesConfig(
-        #    load_in_4bit=True,
-        # #    bnb_4bit_quant_type="nf4",
-        # #    bnb_4bit_use_double_quant=True,
-        #    bnb_4bit_compute_dtype=precision
-        # )
-        
-        model = AutoModelForCausalLM.from_pretrained(model_name, device_map='auto', torch_dtype=precision, token=args.hf_token) #quantization_config=bnb_config
+        model = None
+        if args.quantization:
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_compute_dtype=torch.bfloat16
+            )
+            model = AutoModelForCausalLM.from_pretrained(model_name, device_map='auto', quantization_config=bnb_config, token=args.hf_token) 
+        else: 
+            model = AutoModelForCausalLM.from_pretrained(model_name, device_map='auto', torch_dtype=precision, token=args.hf_token)
+            
         model.to(device)
         
         tokenizer.pad_token = tokenizer.eos_token
@@ -173,8 +177,12 @@ if __name__ == "__main__":
         train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.batch_size * len(labels), collate_fn=collator, drop_last=True)
         test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=args.batch_size * len(labels), collate_fn=collator, drop_last=True)
 
-        #optimizer = bnb.optim.PagedAdamW8bit(generator.model.parameters(), lr=args.lr, betas=(0.9, 0.995))
-        optimizer = bnb.optim.PagedAdamW(generator.model.parameters(), lr=args.lr, betas = (0.9, 0.999))
+        optimizer = None
+        if args.quantization:
+            optimizer = bnb.optim.PagedAdamW8bit(generator.model.parameters(), lr=args.lr, betas=(0.9, 0.999))
+        else:
+            optimizer = bnb.optim.PagedAdamW(generator.model.parameters(), lr=args.lr, betas = (0.9, 0.999))
+            
         scaler = torch.cuda.amp.GradScaler()
         scheduler = get_linear_schedule_with_warmup(optimizer,
                                                     num_warmup_steps=200,
