@@ -34,7 +34,7 @@ if __name__ == "__main__":
             args.dataset, args.seed, args.prediction_method, args.examples_selection_method,
             args.num_shots, args.data_size, args.num_templates, args.select_best, args.max_ensemble_templates, args.n_train_templates
     ):
-        print(f"Model:{model_name}, Dataset:{dataset}")
+        print(f"Model:{model_name}, Dataset:{dataset}, N-shots:{num_shots}")
         torch.cuda.empty_cache()
         precision = torch.float16 if args.precision == 'fp16' else torch.bfloat16 if args.precision == 'bf16' else torch.float32 if args.precision == 'fp32' else torch.int8
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="right", token=args.hf_token)
