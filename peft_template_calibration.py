@@ -62,7 +62,7 @@ if __name__ == "__main__":
         
         target_modules = ["q_proj", "v_proj"]
         if args.all_projections:
-            target_modules = ["q_proj", "o_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"]
+            target_modules = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj", "lm_head"]
             
         peft_config = LoraConfig(inference_mode=False, r=8, lora_alpha=32, target_modules=target_modules, lora_dropout=0.1, peft_type=TaskType.CAUSAL_LM)
 
