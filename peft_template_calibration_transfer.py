@@ -180,7 +180,7 @@ if __name__ == "__main__":
         print(f"Default Ensemble Accuracy: {config['Default Ensemble Accuracy']}")
 
         print('-------UNTRAINED-------')
-        for dataset_ in args.datasets:
+        for dataset_ in args.dataset:
             get_metrics(dataset_, num_shots, num_templates, args.templates_path, seed, generator, selection_method, prediction_method, args.eval_batch_size, precision)
 
         train_ensemble = train_template_probs.mean(dim=0)
