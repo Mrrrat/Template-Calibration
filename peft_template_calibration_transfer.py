@@ -271,7 +271,7 @@ if __name__ == "__main__":
         print(f"Trained Mean Accuracy: {config['Trained Mean Accuracy']}")
 
         print('-------TRAINED-------')
-        for dataset_ in args.datasets:
+        for dataset_ in args.dataset:
             get_metrics(dataset_, num_shots, num_templates, args.templates_path, seed, generator, selection_method, prediction_method, args.eval_batch_size, precision)
 
         
