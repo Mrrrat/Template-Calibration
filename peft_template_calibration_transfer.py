@@ -174,9 +174,9 @@ if __name__ == "__main__":
 
         config['Default Std'] = torch.std(test_template_probs, dim=0).mean()
         print(f"Default Std: {config['Default Std']}")
-        config['Default Mean Accuracy'] = (np.array(labels)[test_template_probs.argmax(2)] == np.array(test['target'])).mean(1).mean()
+        config['Default Mean Accuracy'] = (np.array(labels)[test_template_probs.argmax(2)] == np.array(test['target'])).mean()
         print(f"Default Mean Accuracy: {config['Default Mean Accuracy']}")
-        config['Default Ensemble Accuracy'] = (np.array(labels)[test_template_probs.mean(0).argmax(1)] == np.array(test['target'])).mean(1).mean()
+        config['Default Ensemble Accuracy'] = (np.array(labels)[test_template_probs.mean(0).argmax(1)] == np.array(test['target'])).mean()
         print(f"Default Ensemble Accuracy: {config['Default Ensemble Accuracy']}")
 
         print('-------UNTRAINED-------')
