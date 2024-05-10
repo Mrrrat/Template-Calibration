@@ -24,10 +24,10 @@ try:
 except ImportError:
     wandb = None
 
-def get_metrics(dataset, num_shots, num_templates, templates_path, seed, generator, selection_method, prediction_method, eval_batch_size, precision):
+def get_metrics(dataset, num_shots, num_templates, templates_path, seed, generator, selection_method, prediction_method, eval_batch_size, precision, data_size):
     templates = get_templates(dataset, num_shots, num_templates, templates_path, seed)
     train, test, labels_mp = load_split_dataset(dataset, cache_dir='~/.cache/huggingface/hub')
-    train, test = train[:1000], test[:1000]
+    train, test = train[:data_size], test[:1000]
     labels = list(labels_mp.values())
     selected_examples = get_examples(dataset, train, selection_method=selection_method, seed=seed, num_shots=num_shots,
                                     example_ids=None,
@@ -181,7 +181,7 @@ if __name__ == "__main__":
 
         print('-------UNTRAINED-------')
         for dataset_ in args.dataset:
-            get_metrics(dataset_, num_shots, num_templates, args.templates_path, seed, generator, selection_method, prediction_method, args.eval_batch_size, precision)
+            get_metrics(dataset_, num_shots, num_templates, args.templates_path, seed, generator, selection_method, prediction_method, args.eval_batch_size, precision, data_size)
 
         train_ensemble = train_template_probs.mean(dim=0)
         test_ensemble = test_template_probs.mean(dim=0)
@@ -272,7 +272,7 @@ if __name__ == "__main__":
 
         print('-------TRAINED-------')
         for dataset_ in args.dataset:
-            get_metrics(dataset_, num_shots, num_templates, args.templates_path, seed, generator, selection_method, prediction_method, args.eval_batch_size, precision)
+            get_metrics(dataset_, num_shots, num_templates, args.templates_path, seed, generator, selection_method, prediction_method, args.eval_batch_size, precision, data_size)
 
         
         results_df = save_results_pd(results_df, config, save_dir=args.save_dir)
